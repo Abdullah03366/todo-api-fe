@@ -1,0 +1,37 @@
+/* ─────────────────────────────────────────────
+   variables.css  –  design tokens
+───────────────────────────────────────────── */
+:root {
+  --bg:         #eaf4ff;
+  --surface:    #f8fcff;
+  --card:       #ffffff;
+  --border:     #b6d1ea;
+  --border-hi:  #7eaed8;
+  --accent:     #0070ad;
+  --accent-lo:  rgba(0, 112, 173, 0.12);
+  --accent-hi:  #005c8f;
+  --text:       #0f2b45;
+  --muted:      #3f627f;
+  --low:        #3ecf8e;
+  --med:        #f59e0b;
+  --high:       #ef4444;
+  --radius:     14px;
+  --radius-sm:  8px;
+  --trans:      0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+}
+
+:root[data-theme='dark'] {
+  --bg:         #0f1722;
+  --surface:    #172335;
+  --card:       #1e2f45;
+  --border:     #2c4564;
+  --border-hi:  #3f628e;
+  --accent:     #34a6e2;
+  --accent-lo:  rgba(52, 166, 226, 0.14);
+  --accent-hi:  #79c7ee;
+  --text:       #e7f2ff;
+  --muted:      #a8bfd8;
+}

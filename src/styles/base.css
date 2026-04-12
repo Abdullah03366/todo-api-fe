@@ -1,0 +1,84 @@
+/* ─────────────────────────────────────────────
+   base.css  –  reset, body, scrollbar,
+               typography, animations
+───────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+@import './variables.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at 12% -10%, rgba(0, 112, 173, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 88% 0%, rgba(0, 168, 232, 0.14) 0%, transparent 40%),
+    linear-gradient(180deg, #f2f8ff 0%, var(--bg) 100%);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+html[data-theme='dark'] body {
+  background:
+    radial-gradient(circle at 12% -10%, rgba(52, 166, 226, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 88% 0%, rgba(20, 112, 180, 0.2) 0%, transparent 40%),
+    linear-gradient(180deg, #152235 0%, var(--bg) 100%);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(0, 112, 173, 0.35);
+  outline-offset: 2px;
+}
+
+html[data-theme='dark'] button:focus-visible,
+html[data-theme='dark'] input:focus-visible,
+html[data-theme='dark'] textarea:focus-visible,
+html[data-theme='dark'] select:focus-visible,
+html[data-theme='dark'] a:focus-visible {
+  outline: 3px solid rgba(121, 199, 238, 0.45);
+}
+
+/* ── Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar          { width: 6px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: var(--border-hi); border-radius: 3px; }
+
+/* ── Animations ────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Toast transition ──────────────────────── */
+.toast-fade-enter-active,
+.toast-fade-leave-active  { transition: opacity 0.2s, transform 0.2s; }
+.toast-fade-enter-from,
+.toast-fade-leave-to      { opacity: 0; transform: translateY(10px); }
