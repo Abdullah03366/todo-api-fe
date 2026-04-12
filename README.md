@@ -5,6 +5,20 @@ following the **MVP (Model–View–Presenter)** pattern.
 
 ---
 
+## Current frontend status
+
+- Auth flow with login/register mode toggle and loading/error states.
+- Lists page with create, inline edit, delete, and empty-state handling.
+- Todos page with create, inline edit, complete toggle, delete, and empty-state handling.
+- Todo progress indicator (`completed / total` + percentage bar).
+- Sorting todos by priority or due date (ascending/descending toggle).
+- Global toast notifications for success/error feedback.
+- Language toggle (English/Nederlands) at runtime.
+- Theme toggle (light/dark) at runtime.
+- Basic accessibility support: skip-link, ARIA labels, keyboard-focusable main content.
+
+---
+
 ## Project structure
 
 ```
@@ -77,6 +91,11 @@ In development the Vite dev-server already proxies `/api` → `http://localhost:
 (see `vite.config.js`), so you can also leave `BASE_URL` as an empty string `''`
 and rely on the proxy.
 
+Current default in this repo is already:
+```js
+const BASE_URL = '';
+```
+
 ### 3. Start the dev server
 ```bash
 npm run dev
@@ -90,19 +109,27 @@ npm run build   # output goes to dist/
 
 ---
 
-## Expected Spring Boot API endpoints
+## API contract used by the current frontend
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/users/register` | Register `{ username }` |
-| POST | `/api/users/login` | Login `{ username }` |
-| GET | `/api/users/:username/lists` | Get all lists for user |
-| POST | `/api/users/:username/lists` | Create list `{ title, description }` |
-| PUT | `/api/users/:username/lists/:id` | Update list |
-| DELETE | `/api/users/:username/lists/:id` | Delete list |
-| GET | `/api/lists/:listId/todos` | Get all todos for list |
-| POST | `/api/lists/:listId/todos` | Create todo `{ title, description, due_date, priority }` |
-| PUT | `/api/lists/:listId/todos/:id` | Update todo |
-| DELETE | `/api/lists/:listId/todos/:id` | Delete todo |
+| POST | `/api/users` | Register user with `{ username }` |
+| GET | `/api/users` | Retrieve users (frontend uses this for login by username match) |
+| GET | `/api/users/:id` | Retrieve user details including `todoLists` |
+| GET | `/api/todolists/:id` | Retrieve a todo list including nested todos |
+| POST | `/api/todolists` | Create list with `{ userId, title, description }` |
+| PATCH | `/api/todolists/:id` | Update list |
+| DELETE | `/api/todolists/:id` | Delete list |
+| POST | `/api/todolists/:listId/todos` | Create todo for list |
+| PATCH | `/api/todos/:id` | Update todo |
+| DELETE | `/api/todos/:id` | Delete todo |
 
-`priority` is one of: `LOW` · `MEDIUM` · `HIGH`
+Todo payload fields used by the frontend:
+
+- `title` (string, required)
+- `description` (string)
+- `priority` (`LOW` | `MEDIUM` | `HIGH`)
+- `dueAt` (string date or empty)
+- `completed` (boolean, for updates)
+
+Note: there is currently no dedicated login endpoint in the frontend API service. Login is resolved client-side by fetching `/api/users` and matching `username`.
