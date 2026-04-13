@@ -88,10 +88,11 @@ export default {
 
     // Two-way bound object for AuthForm v-model
     const authState = computed({
-      get: () => ({ mode: auth.authMode.value, username: auth.authUsername.value }),
+      get: () => ({ mode: auth.authMode.value, username: auth.authUsername.value, password: auth.authPassword.value }),
       set: (val) => {
         auth.authMode.value     = val.mode;
         auth.authUsername.value = val.username;
+        auth.authPassword.value = val.password;
       },
     });
 

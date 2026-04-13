@@ -3,26 +3,30 @@
 //  Manages authentication state and actions
 // ─────────────────────────────────────────────
 import { ref } from 'vue';
-import { authApi } from '../api/index.js';
+import { authApi, clearAuthToken } from '../api/index.js';
 
 export function useAuth() {
   const currentUser  = ref(null);
   const authMode     = ref('login');   // 'login' | 'register'
   const authUsername = ref('');
+  const authPassword = ref('');
   const authLoading  = ref(false);
   const authError    = ref('');
 
   async function authenticate() {
-    if (!authUsername.value.trim()) return;
+    if (!authUsername.value.trim() || !authPassword.value.trim()) return;
 
     authError.value   = '';
     authLoading.value = true;
 
     try {
       const fn = authMode.value === 'login' ? authApi.login : authApi.register;
-      const user = await fn(authUsername.value.trim());
-      if (!user) throw new Error('User not found. Please register first.');
-      currentUser.value = user;
+      const auth = await fn({
+        username: authUsername.value.trim(),
+        password: authPassword.value,
+      });
+      if (!auth?.user) throw new Error('Authentication failed.');
+      currentUser.value = auth.user;
       return true; // signal success to caller
     } catch (e) {
       authError.value = e.message;
@@ -33,8 +37,10 @@ export function useAuth() {
   }
 
   function logout() {
+    clearAuthToken();
     currentUser.value  = null;
     authUsername.value = '';
+    authPassword.value = '';
     authError.value    = '';
     authMode.value     = 'login';
   }
@@ -43,6 +49,7 @@ export function useAuth() {
     currentUser,
     authMode,
     authUsername,
+    authPassword,
     authLoading,
     authError,
     authenticate,

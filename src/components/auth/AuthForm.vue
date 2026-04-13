@@ -13,12 +13,12 @@
         <button
           class="tab-btn"
           :class="{ active: modelValue.mode === 'login' }"
-          @click="emit('update:modelValue', { ...modelValue, mode: 'login' })"
+          @click="emit('update:modelValue', { ...modelValue, mode: 'login', password: '' })"
         >{{ locale === 'en' ? 'Login' : 'Inloggen' }}</button>
         <button
           class="tab-btn"
           :class="{ active: modelValue.mode === 'register' }"
-          @click="emit('update:modelValue', { ...modelValue, mode: 'register' })"
+          @click="emit('update:modelValue', { ...modelValue, mode: 'register', password: '' })"
         >{{ locale === 'en' ? 'Register' : 'Registreren' }}</button>
       </div>
 
@@ -40,10 +40,23 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="form-label">{{ locale === 'en' ? 'Password' : 'Wachtwoord' }}</label>
+        <input
+          class="form-input"
+          type="password"
+          :value="modelValue.password"
+          @input="emit('update:modelValue', { ...modelValue, password: $event.target.value })"
+          :placeholder="locale === 'en' ? 'Enter your password' : 'Voer je wachtwoord in'"
+          autocomplete="current-password"
+          @keyup.enter="emit('submit')"
+        />
+      </div>
+
       <button
         class="btn-primary"
         @click="emit('submit')"
-        :disabled="loading || !modelValue.username.trim()"
+        :disabled="loading || !modelValue.username.trim() || !modelValue.password.trim()"
       >
         <span v-if="loading"><span class="spinner"></span></span>
         <span v-else>{{ modelValue.mode === 'login' ? (locale === 'en' ? 'Login' : 'Inloggen') : (locale === 'en' ? 'Create Account' : 'Account aanmaken') }}</span>

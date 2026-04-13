@@ -3,6 +3,15 @@
 //  your Spring Boot server address
 // ─────────────────────────────────────────────
 const BASE_URL = '';
+let authToken = '';
+
+export function setAuthToken(token) {
+  authToken = token || '';
+}
+
+export function clearAuthToken() {
+  authToken = '';
+}
 
 function getDefaultErrorMessage(status, method, path) {
   const operation = `${method} ${path}`;
@@ -28,11 +37,20 @@ function extractBackendErrorMessage(payload) {
   return payload.message || payload.error || '';
 }
 
+function isDuplicateUsernameError(message, status, path) {
+  if (path !== '/api/auth/register') return false;
+  if (status === 409) return true;
+  return /username|duplicate|already exists|unique/i.test(message || '');
+}
+
 async function req(method, path, body) {
   const opts = {
     method,
     headers: { 'Content-Type': 'application/json' },
   };
+  if (authToken) {
+    opts.headers.Authorization = `Bearer ${authToken}`;
+  }
   if (body !== undefined) opts.body = JSON.stringify(body);
 
   const res = await fetch(BASE_URL + path, opts);
@@ -49,6 +67,9 @@ async function req(method, path, body) {
     }
 
     const backendMessage = extractBackendErrorMessage(payload);
+    if (isDuplicateUsernameError(backendMessage, res.status, path)) {
+      throw new Error('Username already exists. Please choose another one.');
+    }
     const fallbackMessage = getDefaultErrorMessage(res.status, method, path);
     throw new Error(backendMessage || fallbackMessage);
   }
@@ -59,23 +80,23 @@ async function req(method, path, body) {
 
 // ── Auth ────────────────────────────────────
 export const authApi = {
-  register: (username) => req('POST', '/api/users', { username }),
-  // Login endpoint in this backend currently has no usable input contract,
-  // so we resolve login by username through the documented users endpoint.
-  login: async (username) => {
-    const users = await req('GET', '/api/users');
-    return (users || []).find((u) => u.username === username) || null;
+  register: async ({ username, password }) => {
+    const auth = await req('POST', '/api/auth/register', { username, password });
+    setAuthToken(auth?.token);
+    return auth;
+  },
+  login: async ({ username, password }) => {
+    const auth = await req('POST', '/api/auth/login', { username, password });
+    setAuthToken(auth?.token);
+    return auth;
   },
 };
 
 // ── Lists ────────────────────────────────────
 export const listsApi = {
-  getAll: async (userId) => {
-    const user = await req('GET', `/api/users/${userId}`);
-    return user?.todoLists || [];
-  },
+  getAll: () => req('GET', '/api/todolists'),
   getById: (id) => req('GET', `/api/todolists/${id}`),
-  create: (userId, data) => req('POST', '/api/todolists', { userId, ...data }),
+  create: (data) => req('POST', '/api/todolists', data),
   update: (id, data) => req('PATCH', `/api/todolists/${id}`, data),
   remove: (id) => req('DELETE', `/api/todolists/${id}`),
 };

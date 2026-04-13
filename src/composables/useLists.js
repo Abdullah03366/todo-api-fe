@@ -24,11 +24,11 @@ export function useLists(currentUser, showToast) {
 
   // ── Fetch ───────────────────────────────────
   async function loadLists() {
-    if (!currentUser.value?.id) {
+    if (!currentUser.value) {
       todoLists.value = [];
       return;
     }
-    const data = await listsApi.getAll(currentUser.value.id);
+    const data = await listsApi.getAll();
     const baseLists = data || [];
     const hydrated = await Promise.all(
       baseLists.map(async (list) => {
@@ -60,7 +60,7 @@ export function useLists(currentUser, showToast) {
 
     savingList.value = true;
     try {
-      const saved = await listsApi.create(currentUser.value.id, {
+      const saved = await listsApi.create({
         title:       payload.title,
         description: payload.description,
       });
