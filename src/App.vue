@@ -92,23 +92,23 @@
         />
       </section>
     </div>
-  </div>
 
-  <Transition name="controls-fade">
-    <div
-      class="app-controls"
-      role="group"
-      :aria-label="locale === 'en' ? 'Application options' : 'Applicatie opties'"
-      v-show="!hideFloatingControls"
-    >
-      <button class="ctrl-btn" @click="toggleLocale">
-        {{ locale === 'en' ? 'Language: English' : 'Taal: Nederlands' }}
-      </button>
-      <button class="ctrl-btn" @click="toggleTheme">
-        {{ darkMode ? (locale === 'en' ? 'Theme: Dark' : 'Thema: Donker') : (locale === 'en' ? 'Theme: Light' : 'Thema: Licht') }}
-      </button>
-    </div>
-  </Transition>
+    <Transition name="controls-fade">
+      <div
+        class="app-controls"
+        role="group"
+        :aria-label="locale === 'en' ? 'Application options' : 'Applicatie opties'"
+        v-show="!hideFloatingControls"
+      >
+        <button class="ctrl-btn" @click="toggleLocale">
+          {{ locale === 'en' ? 'Language: English' : 'Taal: Nederlands' }}
+        </button>
+        <button class="ctrl-btn" @click="toggleTheme">
+          {{ darkMode ? (locale === 'en' ? 'Theme: Dark' : 'Thema: Donker') : (locale === 'en' ? 'Theme: Light' : 'Thema: Licht') }}
+        </button>
+      </div>
+    </Transition>
+  </div>
 
   <!-- global toast -->
   <AppToast />
@@ -396,6 +396,8 @@ export default {
 <style>
 /* App-shell layout — not scoped so child views can fill it */
 .app-shell {
+  --app-bar-pad-x: 32px;
+  --app-bar-pad-x-mobile: 12px;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -423,7 +425,6 @@ export default {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  touch-action: pan-y;
 }
 
 .todos-panel {
@@ -432,34 +433,43 @@ export default {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  touch-action: pan-y;
 }
 
 .app-controls {
-  position: fixed;
-  left: 14px;
-  bottom: 14px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 1200;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 var(--app-bar-pad-x);
+  border-top: 1px solid var(--border);
+  background: rgba(248, 252, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  min-height: 60px;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .ctrl-btn {
   border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 0.78rem;
+  background: transparent;
+  color: var(--accent-hi);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 0.8125rem;
   font-family: var(--font-body);
   cursor: pointer;
-  box-shadow: 0 10px 26px rgba(10, 30, 60, 0.12);
+  transition: var(--trans);
 }
 
 .ctrl-btn:hover {
   border-color: var(--accent);
-  color: var(--accent-hi);
+  color: var(--text);
+  background: var(--accent-lo);
+}
+
+[data-theme='dark'] .app-controls {
+  background: rgba(16, 27, 42, 0.92);
 }
 
 .controls-fade-enter-active,
@@ -556,10 +566,9 @@ export default {
   }
 
   .app-controls {
-    left: 10px;
-    right: 10px;
-    top: auto;
-    bottom: calc(72px + env(safe-area-inset-bottom));
+    justify-content: space-between;
+    min-height: 56px;
+    padding: 0 var(--app-bar-pad-x-mobile) calc(6px + env(safe-area-inset-bottom));
     flex-direction: row;
   }
 
@@ -567,8 +576,8 @@ export default {
     flex: 1;
     min-width: 0;
     text-align: center;
-    font-size: 0.74rem;
-    padding: 8px 8px;
+    font-size: 0.75rem;
+    padding: 6px 10px;
   }
 }
 </style>

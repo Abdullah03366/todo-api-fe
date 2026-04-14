@@ -28,7 +28,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  padding: 0 var(--app-bar-pad-x, 32px);
   height: 60px;
   background: rgba(248, 252, 255, 0.95);
   backdrop-filter: blur(12px);
@@ -80,7 +80,7 @@ export default {
 
 @media (max-width: 600px) {
   .topbar {
-    padding: 0 12px;
+    padding: 0 var(--app-bar-pad-x-mobile, 12px);
     height: 56px;
   }
 
