@@ -2,6 +2,8 @@
 
 Taskmaster is a Vue 3 + Vite single-page todo app with authentication, todo list management, and per-list todo tracking.
 
+Link to the app: https://victorious-plant-0ee56c803.7.azurestaticapps.net/
+
 ## Features
 
 - Login and register flow
