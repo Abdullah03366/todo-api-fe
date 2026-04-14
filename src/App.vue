@@ -335,6 +335,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -356,12 +357,18 @@ export default {
   background: color-mix(in srgb, var(--card) 90%, #ffffff 10%);
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 .todos-panel {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
 }
 
 .app-controls {
@@ -476,7 +483,8 @@ export default {
   .app-controls {
     left: 10px;
     right: 10px;
-    bottom: calc(10px + env(safe-area-inset-bottom));
+    top: calc(8px + env(safe-area-inset-top));
+    bottom: auto;
     flex-direction: row;
   }
 
