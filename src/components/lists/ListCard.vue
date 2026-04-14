@@ -5,12 +5,21 @@
     • edit mode  – inline title + description fields, save / cancel
 ───────────────────────────────────────────── -->
 <template>
-  <div class="list-card" :class="{ editing: list._editing, complete: totalTodos > 0 && progressPercent === 100 }">
+  <div
+    class="list-card"
+    :class="{ active, editing: list._editing, complete: totalTodos > 0 && progressPercent === 100 }"
+    :role="!list._editing ? 'button' : undefined"
+    :tabindex="!list._editing ? 0 : -1"
+    :aria-label="!list._editing ? (locale === 'en' ? `Open list ${list.title}` : `Open lijst ${list.title}`) : undefined"
+    @click="handleCardClick"
+    @keydown.enter.prevent="handleCardKeydown"
+    @keydown.space.prevent="handleCardKeydown"
+  >
 
     <!-- ── View mode ── -->
     <template v-if="!list._editing">
       <div class="list-card-top">
-        <button class="list-card-body" @click="$emit('open', list)" :aria-label="locale === 'en' ? `Open list ${list.title}` : `Open lijst ${list.title}`">
+        <div class="list-card-body">
           <div class="list-card-title">{{ list.title }}</div>
           <div class="list-card-desc" v-if="list.description">{{ list.description }}</div>
           <div class="list-progress" v-if="totalTodos > 0">
@@ -25,16 +34,16 @@
           <div class="list-progress-empty" v-else>
             {{ locale === 'en' ? 'No todos yet' : 'Nog geen todos' }}
           </div>
-        </button>
+        </div>
 
         <div class="list-card-actions">
-          <button class="icon-btn" @click="$emit('edit', list)" :title="locale === 'en' ? 'Edit' : 'Bewerken'" :aria-label="locale === 'en' ? `Edit list ${list.title}` : `Bewerk lijst ${list.title}`">
+          <button class="icon-btn" @click.stop="$emit('edit', list)" :title="locale === 'en' ? 'Edit' : 'Bewerken'" :aria-label="locale === 'en' ? `Edit list ${list.title}` : `Bewerk lijst ${list.title}`">
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
               <path d="M9 1.5l2.5 2.5-7 7H2v-2.5l7-7z"
                     stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
             </svg>
           </button>
-          <button class="icon-btn danger" @click="$emit('delete', list)" :title="locale === 'en' ? 'Delete' : 'Verwijderen'" :aria-label="locale === 'en' ? `Delete list ${list.title}` : `Verwijder lijst ${list.title}`">
+          <button class="icon-btn danger" @click.stop="$emit('delete', list)" :title="locale === 'en' ? 'Delete' : 'Verwijderen'" :aria-label="locale === 'en' ? `Delete list ${list.title}` : `Verwijder lijst ${list.title}`">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
               <path d="M2 3h8M5 3V2h2v1M4.5 3v6M7.5 3v6M3 3l.5 7h5l.5-7"
                     stroke="currentColor" stroke-width="1.4"
@@ -83,6 +92,7 @@ export default {
   name: 'ListCard',
   props: {
     list: { type: Object, required: true },
+    active: { type: Boolean, default: false },
     locale: { type: String, default: 'en' },
   },
   emits: ['open', 'edit', 'delete', 'cancel-edit', 'save-edit'],
@@ -99,6 +109,18 @@ export default {
       return Math.round((this.completedTodos / this.totalTodos) * 100);
     },
   },
+  methods: {
+    handleCardClick(event) {
+      if (this.list._editing) return;
+      const interactive = event.target.closest('button, a, input, textarea, select');
+      if (interactive) return;
+      this.$emit('open', this.list);
+    },
+    handleCardKeydown() {
+      if (this.list._editing) return;
+      this.$emit('open', this.list);
+    },
+  },
 };
 </script>
 
@@ -112,6 +134,14 @@ export default {
   animation: fadeIn 0.25s ease both;
 }
 .list-card:hover   { border-color: var(--border-hi); }
+.list-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent 65%);
+  outline-offset: 2px;
+}
+.list-card.active {
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border) 30%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-lo) 72%, transparent 28%);
+}
 .list-card.editing { border-color: var(--accent); }
 .list-card.complete {
   border-color: rgba(62, 207, 142, 0.7);
@@ -135,12 +165,7 @@ export default {
 }
 .list-card-body {
   flex: 1;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  text-align: left;
-  color: inherit;
-  padding: 0;
+  min-width: 0;
 }
 .list-card-title {
   font-family: var(--font-display);
@@ -312,7 +337,12 @@ export default {
 
   .list-card-top {
     flex-direction: column;
+    align-items: stretch;
     gap: 10px;
+  }
+
+  .list-card-body {
+    width: 100%;
   }
 
   .list-card-actions {

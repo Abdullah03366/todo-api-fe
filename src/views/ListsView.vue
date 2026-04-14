@@ -5,7 +5,7 @@
   only handles layout and event forwarding.
 ───────────────────────────────────────────── -->
 <template>
-  <main id="main-content" class="main-content" tabindex="-1">
+  <main id="lists-content" class="main-content" tabindex="-1">
     <!-- header -->
     <div class="page-header">
       <div>
@@ -30,7 +30,7 @@
     />
 
     <p class="list-hint" v-if="lists.todoLists.value.length > 0">
-      {{ locale === 'en' ? 'Tip: click a list card to open the todos inside that list.' : 'Tip: klik op een lijstkaart om de todos binnen die lijst te openen.' }}
+      {{ locale === 'en' ? 'Select a list to view and edit its todos on the right.' : 'Selecteer een lijst om rechts de todos te bekijken en te bewerken.' }}
     </p>
 
     <!-- list of cards -->
@@ -44,6 +44,7 @@
         v-for="list in lists.todoLists.value"
         :key="list.id"
         :list="list"
+        :active="activeListId === list.id"
         :locale="locale"
         @open="$emit('open-list', list)"
         @edit="lists.startEdit(list)"
@@ -64,6 +65,7 @@ export default {
   components: { ListCard, ListCreateForm },
   props: {
     lists: { type: Object, required: true },  // useLists() return value
+    activeListId: { type: Number, default: null },
     locale: { type: String, default: 'en' },
   },
   emits: ['open-list'],
@@ -72,10 +74,7 @@ export default {
 
 <style scoped>
 .main-content {
-  flex: 1;
-  padding: 40px 32px;
-  max-width: 1000px;
-  margin: 0 auto;
+  padding: 24px 18px 120px;
   width: 100%;
   animation: fadeIn 0.3s ease both;
 }
@@ -84,12 +83,12 @@ export default {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 32px;
+  margin-bottom: 18px;
 }
 
 .page-title {
   font-family: var(--font-display);
-  font-size: 1.75rem;
+  font-size: 1.45rem;
   font-weight: 700;
   letter-spacing: -0.03em;
 }
@@ -120,11 +119,11 @@ export default {
   border-color: var(--accent);
 }
 
-.lists-grid { display: grid; gap: 14px; }
+.lists-grid { display: grid; gap: 10px; }
 
 .list-hint {
   margin: 0 0 14px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--muted);
 }
 
@@ -137,7 +136,7 @@ export default {
 .empty-state p { font-size: 0.875rem; }
 
 @media (max-width: 600px) {
-  .main-content  { padding: 24px 16px; }
+  .main-content  { padding: 18px 12px 24px; }
   .page-header   { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
 </style>
