@@ -222,7 +222,7 @@
 }
 
 @media (max-width: 600px) {
-  .main-content { padding: 24px 16px calc(28px + env(safe-area-inset-bottom)); }
+  .main-content { padding: 24px 16px calc(104px + env(safe-area-inset-bottom)); }
   .page-header  { flex-direction: column; align-items: flex-start; gap: 12px; }
 
   .progress-wrap {

@@ -94,21 +94,28 @@
     </div>
   </div>
 
-  <div class="app-controls" role="group" :aria-label="locale === 'en' ? 'Application options' : 'Applicatie opties'">
-    <button class="ctrl-btn" @click="toggleLocale">
-      {{ locale === 'en' ? 'Language: English' : 'Taal: Nederlands' }}
-    </button>
-    <button class="ctrl-btn" @click="toggleTheme">
-      {{ darkMode ? (locale === 'en' ? 'Theme: Dark' : 'Thema: Donker') : (locale === 'en' ? 'Theme: Light' : 'Thema: Licht') }}
-    </button>
-  </div>
+  <Transition name="controls-fade">
+    <div
+      class="app-controls"
+      role="group"
+      :aria-label="locale === 'en' ? 'Application options' : 'Applicatie opties'"
+      v-show="!hideFloatingControls"
+    >
+      <button class="ctrl-btn" @click="toggleLocale">
+        {{ locale === 'en' ? 'Language: English' : 'Taal: Nederlands' }}
+      </button>
+      <button class="ctrl-btn" @click="toggleTheme">
+        {{ darkMode ? (locale === 'en' ? 'Theme: Dark' : 'Thema: Donker') : (locale === 'en' ? 'Theme: Light' : 'Thema: Licht') }}
+      </button>
+    </div>
+  </Transition>
 
   <!-- global toast -->
   <AppToast />
 </template>
 
 <script>
-import { ref, computed, watch, watchEffect } from 'vue';
+import { ref, computed, watch, watchEffect, onMounted, onBeforeUnmount } from 'vue';
 import { useAuth }         from './composables/useAuth.js';
 import { useLists }        from './composables/useLists.js';
 import { useTodos }        from './composables/useTodos.js';
@@ -170,6 +177,12 @@ function writeUiPrefs(value) {
   }
 }
 
+function isEditableField(element) {
+  if (!element || typeof element.tagName !== 'string') return false;
+  const tag = element.tagName.toLowerCase();
+  return tag === 'input' || tag === 'textarea' || tag === 'select' || element.isContentEditable;
+}
+
 export default {
   name: 'App',
   components: { AuthForm, AppTopbar, AppToast, ListsView, TodosView },
@@ -183,6 +196,9 @@ export default {
     const mobilePane  = ref('lists');      // 'lists' | 'todos'
     const locale      = ref(storedUiPrefs?.locale ?? 'en');
     const darkMode    = ref(storedUiPrefs?.darkMode ?? false);
+    const keyboardVisible = ref(false);
+
+    const hideFloatingControls = computed(() => keyboardVisible.value);
 
     // ── Composables ───────────────────────────
     const { showToast }    = useToast();
@@ -265,6 +281,38 @@ export default {
       }
     }
 
+    function updateKeyboardVisibilityFromViewport() {
+      if (window.innerWidth > 600) {
+        keyboardVisible.value = false;
+        return;
+      }
+
+      if (!window.visualViewport) return;
+      const viewportLoss = window.innerHeight - window.visualViewport.height;
+      keyboardVisible.value = viewportLoss > 140;
+    }
+
+    function handleFocusIn(event) {
+      if (window.innerWidth > 600) return;
+      if (isEditableField(event.target)) {
+        keyboardVisible.value = true;
+      }
+    }
+
+    function handleFocusOut() {
+      if (window.innerWidth > 600) {
+        keyboardVisible.value = false;
+        return;
+      }
+
+      window.setTimeout(() => {
+        const active = document.activeElement;
+        if (!isEditableField(active)) {
+          keyboardVisible.value = false;
+        }
+      }, 0);
+    }
+
     watchEffect(() => {
       document.documentElement.setAttribute('data-theme', darkMode.value ? 'dark' : 'light');
     });
@@ -307,6 +355,21 @@ export default {
       },
     );
 
+    onMounted(() => {
+      window.addEventListener('focusin', handleFocusIn);
+      window.addEventListener('focusout', handleFocusOut);
+      window.addEventListener('resize', updateKeyboardVisibilityFromViewport);
+      window.visualViewport?.addEventListener('resize', updateKeyboardVisibilityFromViewport);
+      updateKeyboardVisibilityFromViewport();
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('focusin', handleFocusIn);
+      window.removeEventListener('focusout', handleFocusOut);
+      window.removeEventListener('resize', updateKeyboardVisibilityFromViewport);
+      window.visualViewport?.removeEventListener('resize', updateKeyboardVisibilityFromViewport);
+    });
+
     return {
       currentView,
       activeList,
@@ -317,6 +380,7 @@ export default {
       todos,
       locale,
       darkMode,
+      hideFloatingControls,
       handleAuth,
       handleLogout,
       openList,
@@ -396,6 +460,17 @@ export default {
 .ctrl-btn:hover {
   border-color: var(--accent);
   color: var(--accent-hi);
+}
+
+.controls-fade-enter-active,
+.controls-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.controls-fade-enter-from,
+.controls-fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .skip-link {
@@ -483,8 +558,8 @@ export default {
   .app-controls {
     left: 10px;
     right: 10px;
-    top: calc(8px + env(safe-area-inset-top));
-    bottom: auto;
+    top: auto;
+    bottom: calc(72px + env(safe-area-inset-bottom));
     flex-direction: row;
   }
 
