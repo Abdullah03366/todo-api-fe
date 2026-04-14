@@ -157,6 +157,15 @@ export default {
   color: #2f7f5a;
 }
 
+html[data-theme='dark'] .list-card.complete .list-card-title {
+  color: #5ee698;
+}
+
+html[data-theme='dark'] .list-card.complete .list-card-desc,
+html[data-theme='dark'] .list-card.complete .list-progress-head {
+  color: #4ec285;
+}
+
 /* view mode */
 .list-card-top {
   display: flex;
@@ -172,11 +181,15 @@ export default {
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 4px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .list-card-desc {
   font-size: 0.8375rem;
   color: var(--muted);
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .list-progress {

@@ -135,6 +135,9 @@ export default {
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   animation: fadeIn 0.3s ease both;
 }
 
@@ -142,18 +145,29 @@ export default {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  gap: 16px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.page-header > div {
+  min-width: 0;
+  flex: 1 1 0;
 }
 .page-title {
   font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .page-sub {
   color: var(--muted);
   font-size: 0.875rem;
   margin-top: 4px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .btn-add {
@@ -170,6 +184,7 @@ export default {
   font-weight: 500;
   cursor: pointer;
   transition: var(--trans);
+  flex-shrink: 0;
 }
 .btn-add:hover {
   background: rgba(124, 106, 255, 0.2);

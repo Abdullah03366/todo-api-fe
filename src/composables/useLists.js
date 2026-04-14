@@ -39,7 +39,7 @@ export function useLists(currentUser, showToast) {
         }
       }),
     );
-    todoLists.value = hydrated.map(decorateList);
+    todoLists.value = hydrated.map(decorateList).reverse();
   }
 
   // ── Create ──────────────────────────────────
@@ -64,7 +64,7 @@ export function useLists(currentUser, showToast) {
         title:       payload.title,
         description: payload.description,
       });
-      todoLists.value.push(decorateList(saved));
+      todoLists.value.unshift(decorateList(saved));
       cancelCreate();
       showToast('List created!');
     } catch (e) {

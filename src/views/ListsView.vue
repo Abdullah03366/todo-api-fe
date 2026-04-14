@@ -65,7 +65,7 @@ export default {
   components: { ListCard, ListCreateForm },
   props: {
     lists: { type: Object, required: true },  // useLists() return value
-    activeListId: { type: Number, default: null },
+    activeListId: { type: [String, Number], default: null },
     locale: { type: String, default: 'en' },
   },
   emits: ['open-list'],
@@ -76,6 +76,10 @@ export default {
 .main-content {
   padding: 24px 18px 120px;
   width: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   animation: fadeIn 0.3s ease both;
 }
 

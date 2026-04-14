@@ -260,14 +260,16 @@ export default {
 .app-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .app-workspace {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .mobile-pane-switch {
@@ -279,11 +281,13 @@ export default {
   border-right: 1px solid var(--border);
   background: color-mix(in srgb, var(--card) 90%, #ffffff 10%);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .todos-panel {
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .app-controls {

@@ -248,9 +248,22 @@ export default {
   outline-offset: 2px;
 }
 
-.todo-body  { flex: 1; }
-.todo-title { font-weight: 500; font-size: 0.9375rem; margin-bottom: 4px; }
-.todo-desc  { font-size: 0.825rem; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+.todo-body  { flex: 1; min-width: 0; }
+.todo-title {
+  font-weight: 500;
+  font-size: 0.9375rem;
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.todo-desc  {
+  font-size: 0.825rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 
 .todo-title.is-done,
 .todo-desc.is-done {
