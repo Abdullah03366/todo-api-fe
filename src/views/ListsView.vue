@@ -57,6 +57,7 @@
 </template>
 
 <script>
+import { onBeforeUnmount, onMounted } from 'vue';
 import ListCard       from '../components/lists/ListCard.vue';
 import ListCreateForm from '../components/lists/ListCreateForm.vue';
 
@@ -69,78 +70,25 @@ export default {
     locale: { type: String, default: 'en' },
   },
   emits: ['open-list'],
+  setup(props) {
+    function handleGlobalEscape(event) {
+      if (event.key !== 'Escape') return;
+
+      if (props.lists.showCreateList.value) {
+        props.lists.cancelCreate();
+        return;
+      }
+
+      const editingList = props.lists.todoLists.value.find((list) => list._editing);
+      if (editingList) {
+        props.lists.cancelEdit(editingList);
+      }
+    }
+
+    onMounted(() => window.addEventListener('keydown', handleGlobalEscape));
+    onBeforeUnmount(() => window.removeEventListener('keydown', handleGlobalEscape));
+  },
 };
 </script>
 
-<style scoped>
-.main-content {
-  padding: 24px 18px 120px;
-  width: 100%;
-  min-height: 0;
-  max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  animation: fadeIn 0.3s ease both;
-}
-
-.page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 18px;
-}
-
-.page-title {
-  font-family: var(--font-display);
-  font-size: 1.45rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
-.page-sub {
-  color: var(--muted);
-  font-size: 0.875rem;
-  margin-top: 4px;
-}
-
-.btn-add {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  background: var(--accent-lo);
-  border: 1px solid rgba(124, 106, 255, 0.3);
-  border-radius: var(--radius-sm);
-  color: var(--accent-hi);
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--trans);
-}
-.btn-add:hover {
-  background: rgba(124, 106, 255, 0.2);
-  border-color: var(--accent);
-}
-
-.lists-grid { display: grid; gap: 10px; }
-
-.list-hint {
-  margin: 0 0 14px;
-  font-size: 0.8125rem;
-  color: var(--muted);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--muted);
-}
-.empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
-.empty-state p { font-size: 0.875rem; }
-
-@media (max-width: 600px) {
-  .main-content  { padding: 18px 12px 24px; }
-  .page-header   { flex-direction: column; align-items: flex-start; gap: 12px; }
-}
-</style>
+<style scoped src="../styles/views/lists-view.css"></style>

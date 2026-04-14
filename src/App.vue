@@ -120,17 +120,69 @@ import AppToast    from './components/shared/AppToast.vue';
 import ListsView   from './views/ListsView.vue';
 import TodosView   from './views/TodosView.vue';
 
+const UI_PREFS_KEY = 'taskr.ui.prefs';
+const UI_PREFS_TTL_MS = 60 * 60 * 1000;
+
+function getSessionStorageSafe() {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+function readUiPrefs() {
+  const storage = getSessionStorageSafe();
+  if (!storage) return null;
+
+  try {
+    const raw = storage.getItem(UI_PREFS_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    const expiresAt = Number(parsed?.expiresAt);
+    if (!expiresAt || Date.now() > expiresAt) {
+      storage.removeItem(UI_PREFS_KEY);
+      return null;
+    }
+
+    const locale = ['en', 'nl'].includes(parsed?.value?.locale) ? parsed.value.locale : 'en';
+    const darkMode = typeof parsed?.value?.darkMode === 'boolean' ? parsed.value.darkMode : false;
+
+    return { locale, darkMode };
+  } catch {
+    return null;
+  }
+}
+
+function writeUiPrefs(value) {
+  const storage = getSessionStorageSafe();
+  if (!storage) return;
+
+  try {
+    storage.setItem(UI_PREFS_KEY, JSON.stringify({
+      value,
+      expiresAt: Date.now() + UI_PREFS_TTL_MS,
+    }));
+  } catch {
+    // Ignore write errors (private mode/quota/security settings).
+  }
+}
+
 export default {
   name: 'App',
   components: { AuthForm, AppTopbar, AppToast, ListsView, TodosView },
 
   setup() {
+    const storedUiPrefs = readUiPrefs();
+
     // ── Shared state ──────────────────────────
     const currentView = ref('auth');       // 'auth' | 'app'
     const activeList  = ref(null);
     const mobilePane  = ref('lists');      // 'lists' | 'todos'
-    const locale      = ref('en');
-    const darkMode    = ref(false);
+    const locale      = ref(storedUiPrefs?.locale ?? 'en');
+    const darkMode    = ref(storedUiPrefs?.darkMode ?? false);
 
     // ── Composables ───────────────────────────
     const { showToast }    = useToast();
@@ -215,6 +267,10 @@ export default {
 
     watchEffect(() => {
       document.documentElement.setAttribute('data-theme', darkMode.value ? 'dark' : 'light');
+    });
+
+    watch([locale, darkMode], ([nextLocale, nextDarkMode]) => {
+      writeUiPrefs({ locale: nextLocale, darkMode: nextDarkMode });
     });
 
     watch(

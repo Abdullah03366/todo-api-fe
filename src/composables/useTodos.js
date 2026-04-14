@@ -3,21 +3,77 @@
 //  Manages todo-item CRUD, editing state
 //  and priority sorting
 // ─────────────────────────────────────────────
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import { todosApi } from '../api/index.js';
 
 const PRIORITY_ORDER = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+const TODOS_PREFS_KEY = 'taskr.todos.prefs';
+const TODOS_PREFS_TTL_MS = 60 * 60 * 1000;
+
+function getSessionStorageSafe() {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+function readTodoPrefs() {
+  const storage = getSessionStorageSafe();
+  if (!storage) return null;
+
+  try {
+    const raw = storage.getItem(TODOS_PREFS_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    const expiresAt = Number(parsed?.expiresAt);
+    if (!expiresAt || Date.now() > expiresAt) {
+      storage.removeItem(TODOS_PREFS_KEY);
+      return null;
+    }
+
+    const allowedSortBy = [null, 'priority', 'due_date', 'status'];
+    const allowedDirection = ['asc', 'desc'];
+    const allowedPriority = ['ALL', 'LOW', 'MEDIUM', 'HIGH'];
+
+    const sortBy = allowedSortBy.includes(parsed?.value?.sortBy) ? parsed.value.sortBy : null;
+    const sortDirection = allowedDirection.includes(parsed?.value?.sortDirection) ? parsed.value.sortDirection : 'asc';
+    const priorityFilter = allowedPriority.includes(parsed?.value?.priorityFilter) ? parsed.value.priorityFilter : 'ALL';
+
+    return { sortBy, sortDirection, priorityFilter };
+  } catch {
+    return null;
+  }
+}
+
+function writeTodoPrefs(value) {
+  const storage = getSessionStorageSafe();
+  if (!storage) return;
+
+  try {
+    storage.setItem(TODOS_PREFS_KEY, JSON.stringify({
+      value,
+      expiresAt: Date.now() + TODOS_PREFS_TTL_MS,
+    }));
+  } catch {
+    // Ignore write errors (private mode/quota/security settings).
+  }
+}
 
 function decorateTodo(raw) {
   return { ...raw, _editing: false, _draft: null, _saving: false };
 }
 
 export function useTodos(showToast) {
+  const storedPrefs     = readTodoPrefs();
   const todos           = ref([]);
   const showCreateTodo  = ref(false);
   const savingTodo      = ref(false);
-  const sortBy          = ref(null); // null | 'priority' | 'due_date'
-  const sortDirection   = ref('asc'); // 'asc' | 'desc'
+  const sortBy          = ref(storedPrefs?.sortBy ?? null); // null | 'priority' | 'due_date' | 'status'
+  const sortDirection   = ref(storedPrefs?.sortDirection ?? 'asc'); // 'asc' | 'desc'
+  const priorityFilter  = ref(storedPrefs?.priorityFilter ?? 'ALL'); // ALL | LOW | MEDIUM | HIGH
 
   const newTodo = reactive({
     title:       '',
@@ -37,14 +93,26 @@ export function useTodos(showToast) {
     return Date.parse(`${m[3]}-${m[2]}-${m[1]}`);
   }
 
-  const sortedTodos = computed(() => {
-    if (!sortBy.value) return todos.value;
+  const filteredTodos = computed(() => {
+    if (priorityFilter.value === 'ALL') return todos.value;
+    return todos.value.filter((todo) => todo.priority === priorityFilter.value);
+  });
 
-    return [...todos.value].sort((a, b) => {
+  const sortedTodos = computed(() => {
+    if (!sortBy.value) return filteredTodos.value;
+
+    return [...filteredTodos.value].sort((a, b) => {
       if (sortBy.value === 'priority') {
         const aPriority = PRIORITY_ORDER[a.priority] ?? 99;
         const bPriority = PRIORITY_ORDER[b.priority] ?? 99;
         const diff = aPriority - bPriority;
+        return sortDirection.value === 'asc' ? diff : -diff;
+      }
+
+      if (sortBy.value === 'status') {
+        const aStatus = a.completed ? 1 : 0;
+        const bStatus = b.completed ? 1 : 0;
+        const diff = aStatus - bStatus;
         return sortDirection.value === 'asc' ? diff : -diff;
       }
 
@@ -60,6 +128,11 @@ export function useTodos(showToast) {
       const diff = aTs - bTs;
       return sortDirection.value === 'asc' ? diff : -diff;
     });
+  });
+
+  const visibleTodos = computed(() => {
+    if (!sortBy.value) return filteredTodos.value;
+    return sortedTodos.value;
   });
 
   const prioritySortLabel = computed(() => {
@@ -97,6 +170,27 @@ export function useTodos(showToast) {
     sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
   }
 
+  function toggleStatusSort() {
+    if (sortBy.value !== 'status') {
+      sortBy.value = 'status';
+      sortDirection.value = 'asc';
+      return;
+    }
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+  }
+
+  function setPriorityFilter(next) {
+    priorityFilter.value = next;
+  }
+
+  watch([sortBy, sortDirection, priorityFilter], ([nextSortBy, nextSortDirection, nextPriorityFilter]) => {
+    writeTodoPrefs({
+      sortBy: nextSortBy,
+      sortDirection: nextSortDirection,
+      priorityFilter: nextPriorityFilter,
+    });
+  });
+
   // ── Fetch ───────────────────────────────────
   async function loadTodos(listId) {
     const data = await todosApi.getAll(listId);
@@ -106,8 +200,6 @@ export function useTodos(showToast) {
   function reset() {
     todos.value          = [];
     showCreateTodo.value = false;
-    sortBy.value         = null;
-    sortDirection.value  = 'asc';
   }
 
   // ── Create ──────────────────────────────────
@@ -264,15 +356,20 @@ export function useTodos(showToast) {
     savingTodo,
     sortBy,
     sortDirection,
+    priorityFilter,
     prioritySortLabel,
     dueDateSortLabel,
     totalTodos,
     completedTodos,
     completionPercent,
     newTodo,
+    filteredTodos,
     sortedTodos,
+    visibleTodos,
     togglePrioritySort,
     toggleDueDateSort,
+    toggleStatusSort,
+    setPriorityFilter,
     loadTodos,
     reset,
     openCreateForm,
