@@ -6,14 +6,24 @@ Link to the app: https://victorious-plant-0ee56c803.7.azurestaticapps.net/
 
 ## Features
 
-- Login and register flow
+- Authentication with login and register flows
+- Inline loading/error feedback during authentication
 - Create, edit, and delete todo lists
-- Create, edit, complete, and delete todos
-- Progress tracking per list
-- Sorting by priority and due date
-- Language toggle (English and Dutch)
-- Theme toggle (Light and Dark)
-- Keyboard and screen reader support for key interactive areas
+- Open a list to load and manage its todos in the workspace panel
+- List cards show progress (completed vs total todos)
+- Create, edit, complete/uncomplete, and delete todos
+- Todo metadata support: description, priority, and due date
+- Priority filtering (`ALL`, `HIGH`, `MEDIUM`, `LOW`)
+- Sorting for todos by status, priority, and due date (ascending/descending toggle)
+- Progress bar and completion percentage for the active list
+- Due-date indicators per todo (due today, days left, overdue warning)
+- Global toast notifications for success/error actions
+- UI preferences stored in session storage with TTL (theme/language and todo sort/filter state)
+- Locale toggle between English and Dutch
+- Light/dark theme toggle
+- Mobile pane switch (Lists/Todos) with keyboard navigation
+- Keyboard-first flows, including `Esc` to close create/edit states
+- Screen-reader support through ARIA labels, tab semantics, and live regions
 
 ## Tech stack
 
@@ -24,12 +34,46 @@ Link to the app: https://victorious-plant-0ee56c803.7.azurestaticapps.net/
 ## Project structure
 
 ```text
-src/
-    api/           # API client
-    composables/   # App logic/state hooks
-    components/    # Reusable UI components
-    views/         # Page-level views
-    styles/        # Global styles and design tokens
+.
+|-- index.html
+|-- package.json
+|-- vite.config.js
+`-- src/
+    |-- App.vue
+    |-- main.js
+    |-- api/
+    |   `-- index.js
+    |-- composables/
+    |   |-- useAuth.js
+    |   |-- useLists.js
+    |   |-- useToast.js
+    |   `-- useTodos.js
+    |-- components/
+    |   |-- auth/
+    |   |   `-- AuthForm.vue
+    |   |-- lists/
+    |   |   |-- ListCard.vue
+    |   |   `-- ListCreateForm.vue
+    |   |-- shared/
+    |   |   |-- AppToast.vue
+    |   |   `-- AppTopbar.vue
+    |   `-- todos/
+    |       |-- TodoCard.vue
+    |       `-- TodoCreateForm.vue
+    |-- styles/
+    |   |-- base.css
+    |   |-- components.css
+    |   |-- variables.css
+    |   |-- components/
+    |   |   `-- todos/
+    |   |       |-- todo-card.css
+    |   |       `-- todo-create-form.css
+    |   `-- views/
+    |       |-- lists-view.css
+    |       `-- todos-view.css
+    `-- views/
+        |-- ListsView.vue
+        `-- TodosView.vue
 ```
 
 ## Environment configuration
