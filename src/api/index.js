@@ -1,8 +1,7 @@
 // ─────────────────────────────────────────────
-//  API Service  –  change BASE_URL to match
-//  your Spring Boot server address
+//  API Service  –  BASE_URL from environment
 // ─────────────────────────────────────────────
-const BASE_URL = '';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 let authToken = '';
 
 export function setAuthToken(token) {
@@ -47,6 +46,7 @@ async function req(method, path, body) {
   const opts = {
     method,
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
   };
   if (authToken) {
     opts.headers.Authorization = `Bearer ${authToken}`;
