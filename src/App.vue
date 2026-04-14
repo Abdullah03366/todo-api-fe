@@ -110,6 +110,23 @@
     </Transition>
   </div>
 
+  <Transition name="controls-fade">
+    <div
+      v-if="currentView === 'auth'"
+      class="app-controls auth-controls"
+      role="group"
+      :aria-label="locale === 'en' ? 'Application options' : 'Applicatie opties'"
+      v-show="!hideFloatingControls"
+    >
+      <button class="ctrl-btn" @click="toggleLocale">
+        {{ locale === 'en' ? 'Language: English' : 'Taal: Nederlands' }}
+      </button>
+      <button class="ctrl-btn" @click="toggleTheme">
+        {{ darkMode ? (locale === 'en' ? 'Theme: Dark' : 'Thema: Donker') : (locale === 'en' ? 'Theme: Light' : 'Thema: Licht') }}
+      </button>
+    </div>
+  </Transition>
+
   <!-- global toast -->
   <AppToast />
 </template>
@@ -450,6 +467,20 @@ export default {
   width: 100%;
 }
 
+.auth-controls {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  width: auto;
+  justify-content: stretch;
+  z-index: 1200;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  min-height: 54px;
+  padding: 8px 10px;
+}
+
 .ctrl-btn {
   border: 1px solid var(--border);
   background: transparent;
@@ -570,6 +601,14 @@ export default {
     min-height: 56px;
     padding: 0 var(--app-bar-pad-x-mobile) calc(6px + env(safe-area-inset-bottom));
     flex-direction: row;
+  }
+
+  .auth-controls {
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    min-height: 52px;
+    padding: 6px 8px;
   }
 
   .ctrl-btn {
