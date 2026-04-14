@@ -9,60 +9,74 @@
       <div class="auth-tagline">{{ locale === 'en' ? 'Organise everything. Simply.' : 'Organiseer alles. Simpel.' }}</div>
 
       <!-- mode toggle -->
-      <div class="tab-row">
+      <div class="tab-row" role="tablist" :aria-label="locale === 'en' ? 'Authentication mode' : 'Authenticatie modus'">
         <button
+          id="auth-tab-login"
           class="tab-btn"
+          role="tab"
+          aria-controls="auth-panel"
+          :aria-selected="modelValue.mode === 'login'"
+          :tabindex="modelValue.mode === 'login' ? 0 : -1"
           :class="{ active: modelValue.mode === 'login' }"
           @click="emit('update:modelValue', { ...modelValue, mode: 'login', password: '' })"
+          @keydown="handleModeTabKeydown"
         >{{ locale === 'en' ? 'Login' : 'Inloggen' }}</button>
         <button
+          id="auth-tab-register"
           class="tab-btn"
+          role="tab"
+          aria-controls="auth-panel"
+          :aria-selected="modelValue.mode === 'register'"
+          :tabindex="modelValue.mode === 'register' ? 0 : -1"
           :class="{ active: modelValue.mode === 'register' }"
           @click="emit('update:modelValue', { ...modelValue, mode: 'register', password: '' })"
+          @keydown="handleModeTabKeydown"
         >{{ locale === 'en' ? 'Register' : 'Registreren' }}</button>
       </div>
 
-      <!-- username field -->
-      <div class="form-group">
-        <label class="form-label">{{ locale === 'en' ? 'Username' : 'Gebruikersnaam' }}</label>
-        <input
-          class="form-input"
-          :value="modelValue.username"
-          @input="emit('update:modelValue', { ...modelValue, username: $event.target.value })"
-          :placeholder="locale === 'en' ? 'e.g. jane_doe' : 'bijv. jane_doe'"
-          autocomplete="username"
-          maxlength="50"
-          aria-describedby="username-counter"
-          @keyup.enter="emit('submit')"
-        />
-        <div id="username-counter" class="char-counter" aria-live="polite">
-          {{ modelValue.username.length }}/50
+      <div id="auth-panel" role="tabpanel" :aria-labelledby="modelValue.mode === 'login' ? 'auth-tab-login' : 'auth-tab-register'">
+        <!-- username field -->
+        <div class="form-group">
+          <label class="form-label">{{ locale === 'en' ? 'Username' : 'Gebruikersnaam' }}</label>
+          <input
+            class="form-input"
+            :value="modelValue.username"
+            @input="emit('update:modelValue', { ...modelValue, username: $event.target.value })"
+            :placeholder="locale === 'en' ? 'e.g. jane_doe' : 'bijv. jane_doe'"
+            autocomplete="username"
+            maxlength="50"
+            aria-describedby="username-counter"
+            @keyup.enter="emit('submit')"
+          />
+          <div id="username-counter" class="char-counter" aria-live="polite">
+            {{ modelValue.username.length }}/50
+          </div>
         </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ locale === 'en' ? 'Password' : 'Wachtwoord' }}</label>
+          <input
+            class="form-input"
+            type="password"
+            :value="modelValue.password"
+            @input="emit('update:modelValue', { ...modelValue, password: $event.target.value })"
+            :placeholder="locale === 'en' ? 'Enter your password' : 'Voer je wachtwoord in'"
+            autocomplete="current-password"
+            @keyup.enter="emit('submit')"
+          />
+        </div>
+
+        <button
+          class="btn-primary"
+          @click="emit('submit')"
+          :disabled="loading || !modelValue.username.trim() || !modelValue.password.trim()"
+        >
+          <span v-if="loading"><span class="spinner"></span></span>
+          <span v-else>{{ modelValue.mode === 'login' ? (locale === 'en' ? 'Login' : 'Inloggen') : (locale === 'en' ? 'Create Account' : 'Account aanmaken') }}</span>
+        </button>
+
+        <div class="error-msg" v-if="error">{{ error }}</div>
       </div>
-
-      <div class="form-group">
-        <label class="form-label">{{ locale === 'en' ? 'Password' : 'Wachtwoord' }}</label>
-        <input
-          class="form-input"
-          type="password"
-          :value="modelValue.password"
-          @input="emit('update:modelValue', { ...modelValue, password: $event.target.value })"
-          :placeholder="locale === 'en' ? 'Enter your password' : 'Voer je wachtwoord in'"
-          autocomplete="current-password"
-          @keyup.enter="emit('submit')"
-        />
-      </div>
-
-      <button
-        class="btn-primary"
-        @click="emit('submit')"
-        :disabled="loading || !modelValue.username.trim() || !modelValue.password.trim()"
-      >
-        <span v-if="loading"><span class="spinner"></span></span>
-        <span v-else>{{ modelValue.mode === 'login' ? (locale === 'en' ? 'Login' : 'Inloggen') : (locale === 'en' ? 'Create Account' : 'Account aanmaken') }}</span>
-      </button>
-
-      <div class="error-msg" v-if="error">{{ error }}</div>
     </div>
   </div>
 </template>
@@ -77,8 +91,22 @@ export default {
     locale:     { type: String,  default: 'en' },
   },
   emits: ['update:modelValue', 'submit'],
-  setup(_, { emit }) {
-    return { emit };
+  setup(props, { emit }) {
+    function handleModeTabKeydown(event) {
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft' && event.key !== 'Home' && event.key !== 'End') {
+        return;
+      }
+
+      event.preventDefault();
+      if (event.key === 'Home' || event.key === 'ArrowLeft') {
+        emit('update:modelValue', { ...props.modelValue, mode: 'login', password: '' });
+        return;
+      }
+
+      emit('update:modelValue', { ...props.modelValue, mode: 'register', password: '' });
+    }
+
+    return { emit, handleModeTabKeydown };
   },
 };
 </script>

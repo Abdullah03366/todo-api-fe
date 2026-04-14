@@ -1,7 +1,12 @@
 // ─────────────────────────────────────────────
 //  API Service  –  BASE_URL from environment
 // ─────────────────────────────────────────────
-const BASE_URL = 'https://taskmaster-todo.azurewebsites.net';
+function normalizeBaseUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  return url.trim().replace(/\/$/, '');
+}
+
+const BASE_URL = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL);
 let authToken = '';
 
 export function setAuthToken(token) {

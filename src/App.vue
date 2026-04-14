@@ -34,8 +34,10 @@
         :aria-label="locale === 'en' ? 'Mobile view sections' : 'Mobiele weergave secties'"
       >
         <button
+          id="mobile-tab-lists"
           class="mobile-pane-btn"
           role="tab"
+          aria-controls="lists-panel"
           :aria-selected="mobilePane === 'lists'"
           :tabindex="mobilePane === 'lists' ? 0 : -1"
           :class="{ active: mobilePane === 'lists' }"
@@ -45,13 +47,15 @@
           {{ locale === 'en' ? 'Lists' : 'Lijsten' }}
         </button>
         <button
+          id="mobile-tab-todos"
           class="mobile-pane-btn"
           role="tab"
+          aria-controls="todos-panel"
           :aria-selected="mobilePane === 'todos'"
-          :aria-disabled="!hasLists"
+          :aria-disabled="!activeList"
           :tabindex="mobilePane === 'todos' ? 0 : -1"
           :class="{ active: mobilePane === 'todos' }"
-          :disabled="!hasLists"
+          :disabled="!activeList"
           @click="mobilePane = 'todos'"
           @keydown="handleMobilePaneKeydown"
         >
@@ -59,7 +63,13 @@
         </button>
       </div>
 
-      <aside class="lists-panel" :aria-label="locale === 'en' ? 'Todo lists' : 'Todo lijsten'">
+      <aside
+        id="lists-panel"
+        class="lists-panel"
+        role="tabpanel"
+        aria-labelledby="mobile-tab-lists"
+        :aria-label="locale === 'en' ? 'Todo lists' : 'Todo lijsten'"
+      >
         <ListsView
           :lists="lists"
           :active-list-id="activeList?.id || null"
@@ -68,7 +78,12 @@
         />
       </aside>
 
-      <section class="todos-panel">
+      <section
+        id="todos-panel"
+        class="todos-panel"
+        role="tabpanel"
+        aria-labelledby="mobile-tab-todos"
+      >
         <TodosView
           :active-list="activeList"
           :todos="todos"
@@ -122,7 +137,6 @@ export default {
     const auth             = useAuth();
     const lists            = useLists(auth.currentUser, showToast);
     const todos            = useTodos(showToast);
-    const hasLists         = computed(() => lists.todoLists.value.length > 0);
 
     // Two-way bound object for AuthForm v-model
     const authState = computed({
@@ -176,7 +190,12 @@ export default {
     }
 
     function handleMobilePaneKeydown(event) {
-      if (!hasLists.value) {
+      const isNavKey = event.key === 'ArrowRight' || event.key === 'ArrowLeft' || event.key === 'Home' || event.key === 'End';
+      if (!isNavKey) return;
+
+      event.preventDefault();
+
+      if (!activeList.value) {
         mobilePane.value = 'lists';
         return;
       }
@@ -240,7 +259,6 @@ export default {
       auth,
       lists,
       todos,
-      hasLists,
       locale,
       darkMode,
       handleAuth,
@@ -338,18 +356,21 @@ export default {
 @media (max-width: 600px) {
   .app-workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .mobile-pane-switch {
     display: flex;
     gap: 8px;
     padding: 10px 12px;
-    position: sticky;
-    top: 56px;
-    z-index: 90;
+    position: relative;
     background: color-mix(in srgb, var(--bg) 88%, #ffffff 12%);
     border-bottom: 1px solid var(--border);
+  }
+
+  .lists-panel,
+  .todos-panel {
+    grid-row: 2;
   }
 
   .mobile-pane-btn {
